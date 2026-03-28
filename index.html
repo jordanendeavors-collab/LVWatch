@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VegasWatch — Your Neighborhood Front Page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="light"]{
+  --bg:#F7F4EF;--card:#FFFFFF;--border:#E0D9CE;--border2:#D0C8BB;
+  --night:#1A1F2E;--dusk:#2C3550;--muted:#7A7060;--clay:#C0460A;
+  --ember:#E06820;--info:#1A6FA8;--danger:#B02020;--warn:#B87010;
+  --success:#2A7A50;--text:#1A1F2E;--text2:#4A4840;--text3:#7A7060;
+  --masthead-bg:#1A1F2E;--sec-border:#1A1F2E;--sec-color:#1A1F2E;
+  --alert-bg:#FFFFFF;--smart-bg:#FFF8F4;--tip-bg:#FFF8F4;--tip-border:#F0D0B8;
+  --footer-bg:#1A1F2E;--tog-bg:rgba(255,255,255,0.12);
+}
+[data-theme="dark"]{
+  --bg:#0D1117;--card:#161B25;--border:#1E2535;--border2:#263044;
+  --night:#080C14;--dusk:#1A2238;--muted:#5A6070;--clay:#C0460A;
+  --ember:#E06820;--info:#2A80C0;--danger:#C83030;--warn:#C88020;
+  --success:#2A7A50;--text:#D8DCE8;--text2:#A0A8B8;--text3:#606878;
+  --masthead-bg:#080C14;--sec-border:#E06820;--sec-color:#D8DCE8;
+  --alert-bg:#161B25;--smart-bg:#1E1510;--tip-bg:#1E1510;--tip-border:#3A2818;
+  --footer-bg:#080C14;--tog-bg:rgba(224,104,32,0.15);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'Source Sans 3',sans-serif;min-height:100vh;transition:background .3s,color .3s;}
+
+/* THEME TOGGLE */
+.theme-toggle{background:var(--tog-bg);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);width:38px;height:38px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.theme-toggle:hover{background:rgba(224,104,32,0.25);border-color:var(--ember);color:white;}
+
+/* PIRATE OVERLAY */
+#pirate-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:20px;}
+#pirate-overlay.active{display:flex;}
+body.busted{animation:siteFlash .5s ease 3;}
+@keyframes siteFlash{0%,100%{outline:0px solid transparent;}25%,75%{outline:6px solid #ff3b00;box-shadow:inset 0 0 80px rgba(255,59,0,.15);}}
+.pirate-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);cursor:pointer;}
+.pirate-modal{position:relative;z-index:1;background:#1A1F2E;border:2px solid var(--ember);max-width:720px;width:100%;overflow:hidden;box-shadow:0 0 80px rgba(224,104,32,.4),0 40px 80px rgba(0,0,0,.6);animation:modalPop .35s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes modalPop{from{transform:scale(.7) translateY(40px);opacity:0;}to{transform:scale(1) translateY(0);opacity:1;}}
+.pirate-header{background:linear-gradient(135deg,var(--clay),var(--ember));padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.pirate-hed{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:white;line-height:1.1;}
+.pirate-subhed{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.6);margin-top:4px;}
+.pirate-close{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.2);color:white;width:36px;height:36px;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s;}
+.pirate-close:hover{background:rgba(0,0,0,.6);}
+.video-tabs{display:flex;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07);overflow-x:auto;}
+.vtab{padding:10px 18px;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.vtab:hover{color:rgba(255,255,255,.7);}
+.vtab.active{color:var(--ember);border-bottom-color:var(--ember);}
+.video-frame{position:relative;padding-bottom:52%;height:0;overflow:hidden;background:#000;}
+.video-frame iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;}
+.pirate-footer{padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.07);}
+.pirate-caption{font-size:.82rem;color:rgba(255,255,255,.5);flex:1;line-height:1.4;}
+.pirate-caption strong{color:var(--ember);}
+.pirate-cta{background:var(--ember);border:none;color:white;padding:10px 20px;font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0;transition:background .2s;text-decoration:none;display:inline-block;}
+.pirate-cta:hover{background:var(--clay);}
+
+/* MASTHEAD */
+.masthead{background:var(--masthead-bg);border-bottom:3px solid var(--ember);position:sticky;top:0;z-index:100;transition:background .3s,box-shadow .3s;}
+body.busted .masthead{box-shadow:0 0 40px rgba(255,59,0,.5);}
+.masthead-top{display:flex;align-items:center;justify-content:space-between;padding:14px 48px;border-bottom:1px solid rgba(255,255,255,.06);}
+.site-name{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:#fff;}
+.site-name span{color:var(--ember);}
+.masthead-right{display:flex;align-items:center;gap:14px;}
+.masthead-meta{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(255,255,255,.3);letter-spacing:.08em;text-align:right;line-height:1.6;}
+.nav-bar{display:flex;padding:0 48px;overflow-x:auto;}
+.nav-item{padding:10px 18px;font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.38);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;flex-shrink:0;user-select:none;}
+.nav-item:hover{color:rgba(255,255,255,.8);}
+.nav-item.active{color:var(--ember);border-bottom-color:var(--ember);}
+
+/* TICKER */
+.ticker{background:var(--clay);padding:7px 48px;display:flex;align-items:center;gap:14px;overflow:hidden;}
+.ticker-label{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:white;background:rgba(0,0,0,.2);padding:3px 10px;flex-shrink:0;}
+.ticker-scroll{font-size:.78rem;color:rgba(255,255,255,.92);white-space:nowrap;animation:ticker 38s linear infinite;}
+@keyframes ticker{0%{transform:translateX(70vw);}100%{transform:translateX(-100%);}}
+
+/* LAYOUT */
+.page-wrap{max-width:1280px;margin:0 auto;padding:28px 48px;}
+.main-grid{display:grid;grid-template-columns:1fr 320px;gap:28px;align-items:start;}
+
+/* TAB SECTIONS — hide/show */
+.tab-section{display:none;}
+.tab-section.active{display:block;}
+
+/* WEATHER */
+.weather-card{background:linear-gradient(135deg,#0D1117,#1A2238);color:white;padding:28px 32px;margin-bottom:24px;position:relative;overflow:hidden;border:1px solid var(--border);transition:box-shadow .3s;}
+[data-theme="light"] .weather-card{background:linear-gradient(135deg,#1A1F2E,#2C3550);}
+body.busted .weather-card{box-shadow:0 0 30px rgba(255,59,0,.3);}
+.weather-card::after{content:'☀';position:absolute;right:28px;top:50%;transform:translateY(-50%);font-size:5.5rem;opacity:.07;}
+.weather-location{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:rgba(255,255,255,.38);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.weather-temp{font-family:'Playfair Display',serif;font-size:3.8rem;font-weight:900;color:var(--ember);line-height:1;}
+.weather-desc{color:rgba(255,255,255,.55);font-size:.88rem;margin-top:5px;}
+.weather-row{display:flex;gap:24px;margin-top:14px;flex-wrap:wrap;}
+.weather-stat{font-size:.78rem;color:rgba(255,255,255,.45);}
+.weather-stat strong{color:rgba(255,255,255,.82);display:block;font-size:.96rem;}
+.weather-full-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px;}
+.wf-card{background:var(--card);border:1px solid var(--border);padding:16px;text-align:center;}
+.wf-day{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+.wf-icon{font-size:1.8rem;margin-bottom:6px;}
+.wf-hi{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--ember);}
+.wf-lo{font-size:.78rem;color:var(--muted);margin-top:2px;}
+
+/* SECTION HEAD */
+.section-head{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--sec-color);border-bottom:2px solid var(--sec-border);padding-bottom:8px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;transition:color .3s,border-color .3s;}
+.section-head .count{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.08em;font-weight:400;}
+
+/* ALERTS */
+.alert-list{display:flex;flex-direction:column;gap:10px;margin-bottom:28px;}
+.alert-card{background:var(--alert-bg);border:1px solid var(--border);border-left:4px solid var(--border2);padding:14px 18px;display:flex;align-items:flex-start;gap:14px;cursor:pointer;transition:box-shadow .2s,background .3s;}
+.alert-card:hover{box-shadow:0 3px 16px rgba(0,0,0,.15);}
+.alert-card.danger{border-left-color:var(--danger);}
+.alert-card.warn{border-left-color:var(--warn);}
+.alert-card.info{border-left-color:var(--info);}
+.alert-card.smart{border-left-color:var(--ember);background:var(--smart-bg);}
+.alert-icon{font-size:1.3rem;flex-shrink:0;margin-top:1px;}
+.alert-title{font-weight:600;font-size:.92rem;color:var(--text);margin-bottom:3px;}
+.alert-meta{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.06em;}
+.alert-tag{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;margin-left:8px;}
+.tag-danger{background:#FEECEC;color:var(--danger);}
+.tag-smart{background:#FDE8D8;color:var(--clay);}
+[data-theme="dark"] .tag-danger{background:rgba(200,48,48,.15);}
+[data-theme="dark"] .tag-smart{background:rgba(224,104,32,.15);}
+
+/* CRIME MAP */
+.crime-map{background:#0D1117;height:340px;position:relative;overflow:hidden;margin-bottom:24px;border:1px solid var(--border);transition:box-shadow .3s;}
+[data-theme="light"] .crime-map{background:#1A1F2E;}
+body.busted .crime-map{box-shadow:0 0 20px rgba(255,59,0,.25);}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:40px 40px;}
+.map-label{position:absolute;top:14px;left:14px;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;}
+.map-pin{position:absolute;width:11px;height:11px;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer;transition:transform .2s;}
+.map-pin:hover{transform:translate(-50%,-50%) scale(1.7);}
+.map-pin::after{content:attr(data-label);position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.88);color:white;font-size:.62rem;padding:3px 8px;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;margin-bottom:4px;font-family:'JetBrains Mono',monospace;}
+.map-pin:hover::after{opacity:1;}
+.pin-red{background:var(--danger);box-shadow:0 0 10px rgba(176,32,32,.6);}
+.pin-amber{background:var(--warn);box-shadow:0 0 8px rgba(184,112,16,.5);}
+.pin-blue{background:var(--info);box-shadow:0 0 7px rgba(26,111,168,.4);}
+.map-legend{position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.65);padding:8px 12px;display:flex;flex-direction:column;gap:5px;}
+.legend-item{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:.56rem;color:rgba(255,255,255,.55);}
+.legend-dot{width:7px;height:7px;border-radius:50%;}
+
+/* FOOD */
+.food-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+.food-card{background:var(--card);border:1px solid var(--border);padding:12px 14px;cursor:pointer;transition:all .2s;}
+.food-card:hover{border-color:var(--ember);}
+.food-name{font-weight:600;font-size:.85rem;color:var(--text);}
+.food-type{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.food-rating{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--ember);margin-top:5px;}
+
+/* QUICK LINKS */
+.quick-links{display:flex;flex-direction:column;}
+.quick-link{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:.85rem;color:var(--text2);cursor:pointer;transition:color .15s;}
+.quick-link:hover{color:var(--ember);}
+.quick-link:last-child{border-bottom:none;}
+.ql-icon{font-size:1rem;width:22px;text-align:center;}
+
+/* COMMUNITY */
+.community-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;}
+.comm-card{background:var(--card);border:1px solid var(--border);padding:16px;cursor:pointer;transition:all .2s;}
+.comm-card:hover{border-color:var(--ember);}
+.comm-title{font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:4px;}
+.comm-meta{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);}
+.comm-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:.08em;padding:2px 6px;margin-top:6px;background:rgba(224,104,32,.15);color:var(--ember);}
+
+/* SMART SECURITY PAGE */
+.smart-hero{background:linear-gradient(135deg,#080C14,#1A2238);border:1px solid var(--border);padding:36px 32px;margin-bottom:24px;position:relative;overflow:hidden;}
+[data-theme="light"] .smart-hero{background:linear-gradient(135deg,#1A1F2E,#2C3550);}
+.smart-hero-title{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:white;margin-bottom:8px;}
+.smart-hero-title span{color:var(--ember);}
+.smart-hero-sub{font-size:.88rem;color:rgba(255,255,255,.5);line-height:1.6;max-width:560px;}
+.smart-hero-cta{display:inline-block;margin-top:20px;background:var(--ember);color:white;padding:12px 28px;font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;text-decoration:none;transition:background .2s;cursor:pointer;border:none;}
+.smart-hero-cta:hover{background:var(--clay);}
+.products-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;}
+.prod-card{background:var(--card);border:1px solid var(--border);padding:20px 16px;text-align:center;cursor:pointer;transition:all .2s;}
+.prod-card:hover{border-color:var(--ember);transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.15);}
+.prod-icon{font-size:2rem;margin-bottom:10px;}
+.prod-name{font-weight:600;font-size:.88rem;color:var(--text);margin-bottom:4px;}
+.prod-desc{font-size:.72rem;color:var(--muted);line-height:1.4;}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:18px;}
+.sidebar-widget{background:var(--card);border:1px solid var(--border);overflow:hidden;transition:box-shadow .3s,background .3s;}
+body.busted .sidebar-widget{box-shadow:0 0 16px rgba(255,59,0,.15);}
+.widget-head{background:var(--night);padding:11px 18px;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.65);}
+.widget-head.smart-head{background:var(--ember);}
+.widget-body{padding:16px 18px;}
+.mon-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
+.mon-row:last-child{border-bottom:none;}
+.mon-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.mon-dot.online{background:#10b981;box-shadow:0 0 5px rgba(16,185,129,.5);}
+.mon-dot.warn{background:var(--warn);}
+.mon-dot.offline{background:#4A5568;}
+.mon-label{font-size:.85rem;color:var(--text);font-weight:600;flex:1;}
+.mon-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);}
+.product-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.product-btn{background:none;border:1px solid var(--border);padding:13px 8px;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.product-btn:hover{border-color:var(--ember);background:var(--smart-bg);}
+body.busted .product-btn{animation:btnPulse .6s ease 2;}
+@keyframes btnPulse{0%,100%{border-color:var(--border);}50%{border-color:#ff3b00;background:var(--smart-bg);box-shadow:0 0 12px rgba(255,59,0,.25);}}
+.product-btn .icon{font-size:1.3rem;}
+.product-btn .label{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);}
+.contact-block{background:linear-gradient(135deg,#080C14,#1A2238);padding:22px 18px;text-align:center;}
+[data-theme="light"] .contact-block{background:linear-gradient(135deg,#1A1F2E,#2C3550);}
+.cb-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:white;margin-bottom:6px;}
+.cb-sub{font-size:.78rem;color:rgba(255,255,255,.5);margin-bottom:18px;line-height:1.5;}
+.cb-phone{display:block;font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--ember);text-decoration:none;margin-bottom:4px;transition:color .2s;}
+.cb-phone:hover{color:#ff8c44;}
+.cb-or{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(255,255,255,.25);letter-spacing:.15em;margin:10px 0;}
+.cb-email{display:block;font-size:.78rem;color:rgba(255,255,255,.55);text-decoration:none;word-break:break-all;transition:color .2s;}
+.cb-email:hover{color:rgba(255,255,255,.85);}
+.cb-tagline{margin-top:14px;font-size:.72rem;color:rgba(255,255,255,.3);font-style:italic;}
+.safety-tip{display:flex;gap:13px;align-items:flex-start;background:var(--tip-bg);border:1px solid var(--tip-border);padding:16px;}
+.tip-icon{font-size:1.4rem;flex-shrink:0;}
+.tip-head{font-weight:600;font-size:.86rem;color:var(--clay);margin-bottom:3px;}
+.tip-text{font-size:.78rem;color:var(--text2);line-height:1.5;}
+.emerg-link{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.83rem;color:var(--text2);cursor:pointer;transition:color .15s;}
+.emerg-link:last-child{border-bottom:none;}
+.emerg-link:hover{color:var(--clay);}
+
+/* FOOTER */
+.brand-footer{background:var(--footer-bg);border-top:3px solid var(--ember);padding:22px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-top:48px;transition:background .3s;}
+.bf-name{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:white;}
+.bf-name span{color:var(--ember);}
+.bf-tagline{font-size:.75rem;color:rgba(255,255,255,.35);margin-top:3px;}
+.bf-contact{text-align:right;}
+.bf-phone{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--ember);text-decoration:none;display:block;}
+.bf-email{font-size:.72rem;color:rgba(255,255,255,.35);margin-top:2px;}
+.bf-email a{color:inherit;text-decoration:none;}
+.bf-email a:hover{color:rgba(255,255,255,.65);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--night);border-left:3px solid var(--success);color:white;padding:12px 18px;font-size:.82rem;max-width:300px;z-index:500;transform:translateX(120%);transition:transform .3s;box-shadow:0 8px 28px rgba(0,0,0,.3);}
+.toast.show{transform:translateX(0);}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .main-grid{grid-template-columns:1fr;}
+  .masthead-top,.nav-bar,.page-wrap,.ticker,.brand-footer{padding-left:20px;padding-right:20px;}
+  .food-grid,.community-grid,.products-grid,.weather-full-grid{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .masthead-top{padding:12px 16px;}
+  .site-name{font-size:1.4rem;}
+  .weather-temp{font-size:2.8rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- PORCH PIRATE POPUP -->
+<div id="pirate-overlay">
+  <div class="pirate-backdrop" onclick="closePirate()"></div>
+  <div class="pirate-modal">
+    <div class="pirate-header">
+      <div>
+        <div class="pirate-hed">🚨 Your Local Porch Pirate — Getting BUSTED</div>
+        <div class="pirate-subhed">This is why your neighbors have cameras. Just saying.</div>
+      </div>
+      <button class="pirate-close" onclick="closePirate()">✕</button>
+    </div>
+    <div class="video-tabs">
+      <div class="vtab active" onclick="switchVideo(0,this)">🎇 Glitter Bomb 3.0</div>
+      <div class="vtab" onclick="switchVideo(1,this)">💥 Glitter Bomb 4.0</div>
+      <div class="vtab" onclick="switchVideo(2,this)">🚁 Drone Bomb 5.0</div>
+      <div class="vtab" onclick="switchVideo(3,this)">🚗 Car Thief 6.0</div>
+      <div class="vtab" onclick="switchVideo(4,this)">😂 Karma Hits</div>
+      <div class="vtab" onclick="switchVideo(5,this)">🎲 Best Boomerang</div>
+    </div>
+    <div class="video-frame">
+      <iframe id="pirate-iframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+    <div class="pirate-footer">
+      <div class="pirate-caption" id="pirate-caption"><strong>Glitter Bomb 3.0</strong> — Former NASA engineer rigs a bait package with glitter, fart spray & hidden cameras. The reactions? Priceless.</div>
+      <a class="pirate-cta" href="tel:6023185756">Don't Be Next — Call Us</a>
+    </div>
+  </div>
+</div>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-top">
+    <div class="site-name">Vegas<span>Watch</span></div>
+    <div class="masthead-right">
+      <div class="masthead-meta">Summerlin, Las Vegas NV 89135<br><span id="live-time"></span></div>
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" title="Toggle dark/light mode">☀️</button>
+    </div>
+  </div>
+  <nav class="nav-bar">
+    <div class="nav-item active" data-tab="overview">Overview</div>
+    <div class="nav-item" data-tab="alerts">Alerts</div>
+    <div class="nav-item" data-tab="crimemap">Crime Map</div>
+    <div class="nav-item" data-tab="weather">Weather</div>
+    <div class="nav-item" data-tab="community">Community</div>
+    <div class="nav-item" data-tab="food">Food &amp; Local</div>
+    <div class="nav-item" data-tab="smart" style="color:var(--ember);">🛡 Smart Security</div>
+  </nav>
+</div>
+
+<div class="ticker">
+  <span class="ticker-label">Live</span>
+  <span class="ticker-scroll">🌡 EXCESSIVE HEAT WARNING through Sunday · 115°F forecast · Drink water &nbsp;&nbsp;|&nbsp;&nbsp; 🚨 Vehicle break-in reported Charleston Blvd &amp; Rampart · 11:40AM &nbsp;&nbsp;|&nbsp;&nbsp; 🏘️ Summerlin HOA Quarterly Meeting — Thursday 6:30PM · Del Webb Rec Center &nbsp;&nbsp;|&nbsp;&nbsp; 🛡️ Tip: Sliding doors are Vegas's #1 break-in point — glass break sensors stop them cold &nbsp;&nbsp;|&nbsp;&nbsp; 🚔 LVMPD DUI checkpoint tonight Sahara Ave &nbsp;&nbsp;|&nbsp;&nbsp; 🍽️ New: Locale Italian Kitchen open in Downtown Summerlin</span>
+</div>
+
+<div class="page-wrap">
+  <div class="main-grid">
+
+    <!-- ═══ MAIN COLUMN ═══ -->
+    <div>
+
+      <!-- ── OVERVIEW ── -->
+      <div class="tab-section active" id="tab-overview">
+        <div class="weather-card">
+          <div class="weather-location">📍 Summerlin, Las Vegas NV · Right Now</div>
+          <div class="weather-temp">113°F</div>
+          <div class="weather-desc">Sunny · Feels like 118°F · UV Index 12 (Extreme) · Excessive Heat Warning</div>
+          <div class="weather-row">
+            <div class="weather-stat"><strong>8%</strong>Humidity</div>
+            <div class="weather-stat"><strong>11 mph</strong>Wind SSW</div>
+            <div class="weather-stat"><strong>96°F</strong>Tonight Low</div>
+            <div class="weather-stat"><strong>115°F</strong>Tomorrow</div>
+          </div>
+        </div>
+        <div class="section-head">Neighborhood Alerts <span class="count">6 active · Updated 2 min ago</span></div>
+        <div class="alert-list">
+          <div class="alert-card danger"><div class="alert-icon">🚨</div><div><div class="alert-title">Vehicle Break-In — Charleston Blvd &amp; Rampart <span class="alert-tag tag-danger">Active</span></div><div class="alert-meta">Reported 11:40AM · LVMPD Case #2026-18844 · Parking garage level 2</div></div></div>
+          <div class="alert-card danger"><div class="alert-icon">🌡️</div><div><div class="alert-title">Excessive Heat Warning — Clark County</div><div class="alert-meta">NWS Las Vegas · In effect through Sunday 8PM · Cooling centers open</div></div></div>
+          <div class="alert-card warn"><div class="alert-icon">📦</div><div><div class="alert-title">Package Theft Spike — Summerlin South ZIP 89135</div><div class="alert-meta">4 reports this week · Peak window: 11AM–2PM · Video doorbells recommended</div></div></div>
+          <div class="alert-card smart" onclick="openPirate(0)"><div class="alert-icon">🛡️</div><div><div class="alert-title">Package Theft Up 18% This Month — Watch What Happens 😂 <span class="alert-tag tag-smart">Watch Now</span></div><div class="alert-meta">Click to see your local porch pirate get exactly what they deserve → Spoiler: glitter.</div></div></div>
+        </div>
+        <div class="section-head">Quick Links</div>
+        <div class="quick-links">
+          <div class="quick-link"><span class="ql-icon">🗑️</span>City of Las Vegas Trash &amp; Recycling</div>
+          <div class="quick-link"><span class="ql-icon">💡</span>NV Energy Outage Map &amp; Account</div>
+          <div class="quick-link"><span class="ql-icon">🚗</span>NDOT Traffic — I-215 &amp; US-95</div>
+          <div class="quick-link"><span class="ql-icon">🏛️</span>City Council &amp; County Commission</div>
+          <div class="quick-link"><span class="ql-icon">💧</span>SNWA Water Conservation Program</div>
+        </div>
+      </div>
+
+      <!-- ── ALERTS ── -->
+      <div class="tab-section" id="tab-alerts">
+        <div class="section-head">All Active Alerts <span class="count">6 active · Updated 2 min ago</span></div>
+        <div class="alert-list">
+          <div class="alert-card danger"><div class="alert-icon">🚨</div><div><div class="alert-title">Vehicle Break-In — Charleston Blvd &amp; Rampart <span class="alert-tag tag-danger">Active</span></div><div class="alert-meta">Reported 11:40AM · LVMPD Case #2026-18844 · Parking garage level 2</div></div></div>
+          <div class="alert-card danger"><div class="alert-icon">🌡️</div><div><div class="alert-title">Excessive Heat Warning — Clark County</div><div class="alert-meta">NWS Las Vegas · In effect through Sunday 8PM · Cooling centers open</div></div></div>
+          <div class="alert-card warn"><div class="alert-icon">📦</div><div><div class="alert-title">Package Theft Spike — Summerlin South ZIP 89135</div><div class="alert-meta">4 reports this week · Peak window: 11AM–2PM · Video doorbells recommended</div></div></div>
+          <div class="alert-card info"><div class="alert-icon">🚔</div><div><div class="alert-title">LVMPD DUI Checkpoint — Sahara Ave Tonight</div><div class="alert-meta">Estimated 9PM–2AM · Plan alternate routes if needed</div></div></div>
+          <div class="alert-card info"><div class="alert-icon">🏘️</div><div><div class="alert-title">Summerlin HOA Quarterly Meeting — Thursday 6:30PM</div><div class="alert-meta">Del Webb Rec Center · Agenda: Street lighting, park maintenance, guest policy</div></div></div>
+          <div class="alert-card smart" onclick="openPirate(0)"><div class="alert-icon">🛡️</div><div><div class="alert-title">Package Theft Up 18% This Month — Watch What Happens 😂 <span class="alert-tag tag-smart">Watch Now</span></div><div class="alert-meta">Click to see your local porch pirate get exactly what they deserve → Spoiler: glitter.</div></div></div>
+        </div>
+      </div>
+
+      <!-- ── CRIME MAP ── -->
+      <div class="tab-section" id="tab-crimemap">
+        <div class="section-head">Area Crime Map <span class="count">Last 7 days · 89135</span></div>
+        <div class="crime-map">
+          <div class="map-grid"></div>
+          <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:.14;" viewBox="0 0 800 340" xmlns="http://www.w3.org/2000/svg">
+            <line x1="0" y1="85" x2="800" y2="85" stroke="white" stroke-width="2"/>
+            <line x1="0" y1="170" x2="800" y2="170" stroke="white" stroke-width="3"/>
+            <line x1="0" y1="255" x2="800" y2="255" stroke="white" stroke-width="2"/>
+            <line x1="160" y1="0" x2="160" y2="340" stroke="white" stroke-width="2"/>
+            <line x1="320" y1="0" x2="320" y2="340" stroke="white" stroke-width="2"/>
+            <line x1="480" y1="0" x2="480" y2="340" stroke="white" stroke-width="3"/>
+            <line x1="640" y1="0" x2="640" y2="340" stroke="white" stroke-width="2"/>
+            <text x="10" y="168" fill="rgba(255,255,255,.35)" font-size="9" font-family="monospace">CHARLESTON</text>
+            <text x="10" y="253" fill="rgba(255,255,255,.35)" font-size="9" font-family="monospace">SAHARA</text>
+            <text x="165" y="16" fill="rgba(255,255,255,.35)" font-size="9" font-family="monospace">RAMPART</text>
+            <text x="325" y="16" fill="rgba(255,255,255,.35)" font-size="9" font-family="monospace">DURANGO</text>
+            <text x="485" y="16" fill="rgba(255,255,255,.35)" font-size="9" font-family="monospace">RAINBOW</text>
+          </svg>
+          <div class="map-label">89135 · Summerlin · Hover pins for details</div>
+          <div class="map-pin pin-red"   style="left:42%;top:50%;" data-label="Vehicle break-in · Charleston/Rampart"></div>
+          <div class="map-pin pin-red"   style="left:28%;top:68%;" data-label="Package theft · Summerlin Pkwy area"></div>
+          <div class="map-pin pin-amber" style="left:60%;top:38%;" data-label="Suspicious vehicle · Rainbow area"></div>
+          <div class="map-pin pin-amber" style="left:18%;top:32%;" data-label="Trespassing report"></div>
+          <div class="map-pin pin-blue"  style="left:72%;top:60%;" data-label="Noise disturbance"></div>
+          <div class="map-pin pin-blue"  style="left:50%;top:78%;" data-label="Traffic stop · Sahara Ave"></div>
+          <div class="map-pin pin-red"   style="left:35%;top:22%;" data-label="Catalytic converter theft · Rampart area"></div>
+          <div class="map-pin pin-amber" style="left:55%;top:82%;" data-label="Suspicious person · Near Sahara/Rainbow"></div>
+          <div class="map-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:var(--danger);"></span>Theft / Break-in</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--warn);"></span>Suspicious Activity</div>
+            <div class="legend-item"><span class="legend-dot" style="background:var(--info);"></span>Non-emergency</div>
+          </div>
+        </div>
+        <div class="section-head" style="margin-top:8px;">Recent Reports <span class="count">7-day window</span></div>
+        <div class="alert-list">
+          <div class="alert-card danger"><div class="alert-icon">🚗</div><div><div class="alert-title">Vehicle Break-In — Charleston/Rampart</div><div class="alert-meta">Mon 11:40AM · LVMPD Case #2026-18844 · Parking garage level 2</div></div></div>
+          <div class="alert-card danger"><div class="alert-icon">📦</div><div><div class="alert-title">Package Theft — Summerlin Pkwy area</div><div class="alert-meta">Sun–Mon · 4 separate reports · 89135 ZIP code</div></div></div>
+          <div class="alert-card warn"><div class="alert-icon">🔍</div><div><div class="alert-title">Suspicious Vehicle — Rainbow Blvd area</div><div class="alert-meta">Sat 9:15PM · Dark SUV circling residential blocks</div></div></div>
+          <div class="alert-card warn"><div class="alert-icon">🔧</div><div><div class="alert-title">Catalytic Converter Theft — Rampart area</div><div class="alert-meta">Fri overnight · Toyota Prius targeted · Case filed</div></div></div>
+        </div>
+      </div>
+
+      <!-- ── WEATHER ── -->
+      <div class="tab-section" id="tab-weather">
+        <div class="weather-card">
+          <div class="weather-location">📍 Summerlin, Las Vegas NV · Right Now</div>
+          <div class="weather-temp">113°F</div>
+          <div class="weather-desc">Sunny · Feels like 118°F · UV Index 12 (Extreme) · Excessive Heat Warning</div>
+          <div class="weather-row">
+            <div class="weather-stat"><strong>8%</strong>Humidity</div>
+            <div class="weather-stat"><strong>11 mph</strong>Wind SSW</div>
+            <div class="weather-stat"><strong>96°F</strong>Tonight Low</div>
+            <div class="weather-stat"><strong>115°F</strong>Tomorrow</div>
+          </div>
+        </div>
+        <div class="section-head">7-Day Forecast <span class="count">Summerlin · NWS Las Vegas</span></div>
+        <div class="weather-full-grid">
+          <div class="wf-card"><div class="wf-day">Today</div><div class="wf-icon">☀️</div><div class="wf-hi">113°F</div><div class="wf-lo">Lo: 96°F</div></div>
+          <div class="wf-card"><div class="wf-day">Tue</div><div class="wf-icon">☀️</div><div class="wf-hi">115°F</div><div class="wf-lo">Lo: 97°F</div></div>
+          <div class="wf-card"><div class="wf-day">Wed</div><div class="wf-icon">🌤️</div><div class="wf-hi">111°F</div><div class="wf-lo">Lo: 94°F</div></div>
+          <div class="wf-card"><div class="wf-day">Thu</div><div class="wf-icon">⛅</div><div class="wf-hi">107°F</div><div class="wf-lo">Lo: 91°F</div></div>
+          <div class="wf-card"><div class="wf-day">Fri</div><div class="wf-icon">🌩️</div><div class="wf-hi">102°F</div><div class="wf-lo">Lo: 88°F · T-Storm</div></div>
+          <div class="wf-card"><div class="wf-day">Sat</div><div class="wf-icon">⛅</div><div class="wf-hi">104°F</div><div class="wf-lo">Lo: 87°F</div></div>
+        </div>
+        <div class="section-head" style="margin-top:24px;">Heat Advisories</div>
+        <div class="alert-list">
+          <div class="alert-card danger"><div class="alert-icon">🌡️</div><div><div class="alert-title">Excessive Heat Warning — Through Sunday 8PM</div><div class="alert-meta">NWS Las Vegas · Temps 110–118°F · Outdoor work dangerous · Stay hydrated</div></div></div>
+          <div class="alert-card info"><div class="alert-icon">❄️</div><div><div class="alert-title">Cooling Centers Open — Clark County</div><div class="alert-meta">Summerlin Library, Desert Breeze Rec Center · 9AM–9PM daily</div></div></div>
+        </div>
+      </div>
+
+      <!-- ── COMMUNITY ── -->
+      <div class="tab-section" id="tab-community">
+        <div class="section-head">Community Events <span class="count">Upcoming</span></div>
+        <div class="community-grid">
+          <div class="comm-card"><div class="comm-title">HOA Quarterly Meeting</div><div class="comm-meta">Thu · 6:30PM · Del Webb Rec Center</div><div class="comm-badge">This Week</div></div>
+          <div class="comm-card"><div class="comm-title">Summerlin Days Festival</div><div class="comm-meta">Sat–Sun · Downtown Summerlin</div><div class="comm-badge">Weekend</div></div>
+          <div class="comm-card"><div class="comm-title">Neighborhood Watch Mtg</div><div class="comm-meta">Wed · 7PM · Red Rock Library</div><div class="comm-badge">This Week</div></div>
+          <div class="comm-card"><div class="comm-title">CCSD Back-to-School Night</div><div class="comm-meta">Next Tue · 5:30PM · Various schools</div><div class="comm-badge">Upcoming</div></div>
+          <div class="comm-card"><div class="comm-title">Farmers Market</div><div class="comm-meta">Every Sat · 7AM–11AM · Downtown Summerlin</div><div class="comm-badge">Weekly</div></div>
+          <div class="comm-card"><div class="comm-title">Pool Maintenance Notice</div><div class="comm-meta">All HOA pools closed Tue 6AM–Noon</div><div class="comm-badge">Notice</div></div>
+        </div>
+        <div class="section-head">Notices &amp; Announcements</div>
+        <div class="alert-list">
+          <div class="alert-card info"><div class="alert-icon">🏘️</div><div><div class="alert-title">HOA Agenda: Street Lighting &amp; Guest Policy Changes</div><div class="alert-meta">Proposals include adding 14 new lights on Summerlin Pkwy · Vote Thursday</div></div></div>
+          <div class="alert-card info"><div class="alert-icon">🚧</div><div><div class="alert-title">Road Work — Durango Dr northbound lanes</div><div class="alert-meta">Mon–Fri · 8AM–4PM · Expect 10–15 min delays · Lasts 3 weeks</div></div></div>
+          <div class="alert-card info"><div class="alert-icon">📚</div><div><div class="alert-title">CCSD New School Year — Aug 5 Start Date</div><div class="alert-meta">Transportation routes updated · Visit ccsd.net for details</div></div></div>
+        </div>
+        <div class="section-head" style="margin-top:24px;">Useful Local Links</div>
+        <div class="quick-links">
+          <div class="quick-link"><span class="ql-icon">🗑️</span>City of Las Vegas Trash &amp; Recycling</div>
+          <div class="quick-link"><span class="ql-icon">💡</span>NV Energy Outage Map &amp; Account</div>
+          <div class="quick-link"><span class="ql-icon">📚</span>Clark County School District Updates</div>
+          <div class="quick-link"><span class="ql-icon">🏛️</span>City Council &amp; County Commission</div>
+          <div class="quick-link"><span class="ql-icon">💧</span>SNWA Water Conservation Program</div>
+        </div>
+      </div>
+
+      <!-- ── FOOD & LOCAL ── -->
+      <div class="tab-section" id="tab-food">
+        <div class="section-head">Food &amp; Local <span class="count">Near Summerlin · 89135</span></div>
+        <div class="food-grid">
+          <div class="food-card"><div class="food-name">Locale Italian Kitchen</div><div class="food-type">Italian · Downtown Summerlin · NEW</div><div class="food-rating">★★★★☆ Just Opened</div></div>
+          <div class="food-card"><div class="food-name">Brio Italian Grille</div><div class="food-type">Italian · Downtown Summerlin</div><div class="food-rating">★★★★☆ 4.5</div></div>
+          <div class="food-card"><div class="food-name">La Strega</div><div class="food-type">Fine Dining · Sahara Ave</div><div class="food-rating">★★★★★ 4.9</div></div>
+          <div class="food-card"><div class="food-name">Honey Salt</div><div class="food-type">American Farm-to-Table</div><div class="food-rating">★★★★★ 4.8</div></div>
+          <div class="food-card"><div class="food-name">Makers &amp; Finders</div><div class="food-type">Coffee Bar · Downtown Summerlin</div><div class="food-rating">★★★★☆ 4.6</div></div>
+          <div class="food-card"><div class="food-name">Yardbird</div><div class="food-type">Southern · Downtown Summerlin</div><div class="food-rating">★★★★★ 4.7</div></div>
+          <div class="food-card"><div class="food-name">Osaka Japanese Cuisine</div><div class="food-type">Japanese · Rampart Blvd</div><div class="food-rating">★★★★☆ 4.4</div></div>
+          <div class="food-card"><div class="food-name">Public School 702</div><div class="food-type">Craft Burgers &amp; Beers</div><div class="food-rating">★★★★☆ 4.5</div></div>
+        </div>
+      </div>
+
+      <!-- ── SMART SECURITY ── -->
+      <div class="tab-section" id="tab-smart">
+        <div class="smart-hero">
+          <div class="smart-hero-title">Smart <span>Security</span> Las Vegas</div>
+          <div class="smart-hero-sub">Protecting Summerlin, Henderson, and the greater Las Vegas Valley. Local operators — not a call center. Real techs, real installs, real fast.</div>
+          <button class="smart-hero-cta" onclick="window.location='tel:6023185756'">Call 602-318-5756 Now</button>
+        </div>
+        <div class="section-head">Products &amp; Services</div>
+        <div class="products-grid">
+          <div class="prod-card" onclick="openPirate(0)"><div class="prod-icon">📷</div><div class="prod-name">Security Cameras</div><div class="prod-desc">4K outdoor/indoor · Night vision · Cloud + local storage</div></div>
+          <div class="prod-card" onclick="openPirate(0)"><div class="prod-icon">🔔</div><div class="prod-name">Video Doorbell</div><div class="prod-desc">Live view · Two-way talk · Motion zones · Package alerts</div></div>
+          <div class="prod-card" onclick="openPirate(1)"><div class="prod-icon">🛡️</div><div class="prod-name">24/7 Monitoring</div><div class="prod-desc">Professional monitoring · Police/fire/medical dispatch · No contracts</div></div>
+          <div class="prod-card" onclick="openPirate(2)"><div class="prod-icon">🔒</div><div class="prod-name">Smart Locks</div><div class="prod-desc">Keypad + app control · Auto-lock · Guest codes · Tamper alerts</div></div>
+          <div class="prod-card" onclick="openPirate(3)"><div class="prod-icon">🪟</div><div class="prod-name">Glass Break Sensors</div><div class="prod-desc">Instant window/door detection · Covers 25ft radius</div></div>
+          <div class="prod-card" onclick="openPirate(4)"><div class="prod-icon">💡</div><div class="prod-name">Smart Lighting</div><div class="prod-desc">Deter intruders · Schedule · Motion triggers · Energy saving</div></div>
+        </div>
+        <div class="section-head">Why Neighbors Call Us</div>
+        <div class="alert-list">
+          <div class="alert-card smart"><div class="alert-icon">⚡</div><div><div class="alert-title">Same-Day Install Available</div><div class="alert-meta">Licensed technicians on-site within hours · No wait, no runaround</div></div></div>
+          <div class="alert-card smart"><div class="alert-icon">🏡</div><div><div class="alert-title">We Know This Neighborhood</div><div class="alert-meta">Summerlin-area specialists · Know the HOA rules · Know the break-in hotspots</div></div></div>
+          <div class="alert-card smart"><div class="alert-icon">📞</div><div><div class="alert-title">Real Local Support</div><div class="alert-meta">Call 602-318-5756 and talk to a human. Not a bot. Not a queue.</div></div></div>
+        </div>
+      </div>
+
+    </div><!-- /main col -->
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <div class="sidebar">
+      <div class="sidebar-widget">
+        <div class="widget-head smart-head">🛡 Security System Status</div>
+        <div class="widget-body">
+          <div class="mon-row"><span class="mon-dot online"></span><span class="mon-label">Front Door Camera</span><span class="mon-time">Live</span></div>
+          <div class="mon-row"><span class="mon-dot online"></span><span class="mon-label">Driveway Camera</span><span class="mon-time">Live</span></div>
+          <div class="mon-row"><span class="mon-dot online"></span><span class="mon-label">Alarm Panel</span><span class="mon-time">Armed · Away</span></div>
+          <div class="mon-row"><span class="mon-dot warn"></span><span class="mon-label">Sliding Door Sensor</span><span class="mon-time">Low Battery</span></div>
+          <div class="mon-row"><span class="mon-dot offline"></span><span class="mon-label">Pool Area Camera</span><span class="mon-time">Offline</span></div>
+        </div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-head smart-head">🏠 Smart Home Products</div>
+        <div class="widget-body">
+          <div class="product-row">
+            <div class="product-btn" onclick="openPirate(0)"><span class="icon">📷</span><span class="label">Cameras</span></div>
+            <div class="product-btn" onclick="openPirate(0)"><span class="icon">🔔</span><span class="label">Doorbell</span></div>
+            <div class="product-btn" onclick="openPirate(2)"><span class="icon">🔒</span><span class="label">Smart Lock</span></div>
+            <div class="product-btn" onclick="openPirate(4)"><span class="icon">💡</span><span class="label">Lighting</span></div>
+            <div class="product-btn" onclick="openPirate(1)"><span class="icon">🛡️</span><span class="label">Monitoring</span></div>
+            <div class="product-btn" onclick="openPirate(3)"><span class="icon">🪟</span><span class="label">Glass Break</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-head smart-head">📞 Free Consultation</div>
+        <div class="contact-block">
+          <div class="cb-title">Talk to a Security Specialist</div>
+          <div class="cb-sub">No pressure. No pop-ups. Just a real conversation about protecting your home in Las Vegas.</div>
+          <a class="cb-phone" href="tel:6023185756">602-318-5756</a>
+          <div class="cb-or">— or —</div>
+          <a class="cb-email" href="mailto:info@aaasmartsecurity.com">info@aaasmartsecurity.com</a>
+          <div class="cb-tagline">We know this neighborhood.</div>
+        </div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-head">🔒 Today's Safety Tip</div>
+        <div class="widget-body" style="padding:0;">
+          <div class="safety-tip">
+            <div class="tip-icon">🌡️</div>
+            <div>
+              <div class="tip-head">Heat Means More Break-Ins</div>
+              <div class="tip-text">When temps hit 110°+, more residents leave windows cracked overnight. Motion sensors on windows and sliding doors keep you protected while staying cool.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-widget">
+        <div class="widget-head">📞 Emergency &amp; Local</div>
+        <div class="widget-body">
+          <div class="emerg-link"><span class="ql-icon">🚔</span>LVMPD Non-Emergency: 702-828-3111</div>
+          <div class="emerg-link"><span class="ql-icon">🚒</span>Clark County Fire Non-Emergency</div>
+          <div class="emerg-link"><span class="ql-icon">🏥</span>Summerlin Hospital: 702-233-7000</div>
+          <div class="emerg-link"><span class="ql-icon">🛡️</span>Smart Security: 602-318-5756</div>
+        </div>
+      </div>
+    </div><!-- /sidebar -->
+
+  </div><!-- /main-grid -->
+</div><!-- /page-wrap -->
+
+<div class="brand-footer">
+  <div>
+    <div class="bf-name">Smart <span>Security</span></div>
+    <div class="bf-tagline">Serving Summerlin, Las Vegas NV · Locally operated</div>
+  </div>
+  <div class="bf-contact">
+    <a class="bf-phone" href="tel:6023185756">602-318-5756</a>
+    <div class="bf-email"><a href="mailto:info@aaasmartsecurity.com">info@aaasmartsecurity.com</a></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── VIDEO LIBRARY ──
+const VIDEOS = [
+  { id:'h4T_LlK1VE4', caption:'<strong>Glitter Bomb 3.0</strong> — Former NASA engineer rigs a bait package with glitter, fart spray & hidden cameras. Priceless.' },
+  { id:'3c584TGG7jQ', caption:'<strong>Glitter Bomb 4.0</strong> — Upgraded with a pneumatic self-launching lid, car horn, and triple-dose glitter. Watch til the end.' },
+  { id:'iWeu2dxHRDg', caption:'<strong>Glitter Bomb 5.0 with Drones</strong> — Autonomous glitter drones chase the thief around their own driveway. A camera would\'ve been cheaper for them.' },
+  { id:'iWWWyG5ZwG8', caption:'<strong>Glitter Bomb 6.0 — Car Thieves Edition</strong> — Glass-reinforced bait car, in-car jump scare, the works. Karma delivered.' },
+  { id:'XGhVdgxx8b8', caption:'<strong>Instant Karma Strikes Again</strong> — Greatest hits of people attempting mischief and immediately regretting every life decision.' },
+  { id:'5qHfyk3VTvM', caption:'<strong>Best Boomerang Karma</strong> — What goes around comes around. The neighborhood is watching.' }
+];
+let currentVideo = 0;
+
+function openPirate(idx) {
+  currentVideo = idx || 0;
+  document.getElementById('pirate-overlay').classList.add('active');
+  loadVideo(currentVideo);
+  document.body.classList.remove('busted');
+  void document.body.offsetWidth;
+  document.body.classList.add('busted');
+  setTimeout(() => document.body.classList.remove('busted'), 2000);
+}
+function closePirate() {
+  document.getElementById('pirate-overlay').classList.remove('active');
+  document.getElementById('pirate-iframe').src = '';
+}
+function loadVideo(idx) {
+  const v = VIDEOS[idx];
+  document.getElementById('pirate-iframe').src =
+    'https://www.youtube.com/embed/' + v.id + '?autoplay=1&rel=0&modestbranding=1';
+  document.getElementById('pirate-caption').innerHTML = v.caption;
+  document.querySelectorAll('.vtab').forEach((t,i) => t.classList.toggle('active', i===idx));
+}
+function switchVideo(idx) { currentVideo = idx; loadVideo(idx); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closePirate(); });
+
+// ── NAV TABS ──
+function switchTab(tabName) {
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.tab === tabName);
+    if(n.dataset.tab === tabName && tabName !== 'smart') {
+      n.style.color = '';
+    }
+  });
+  // Show/hide sections
+  document.querySelectorAll('.tab-section').forEach(s => {
+    s.classList.toggle('active', s.id === 'tab-' + tabName);
+  });
+  // Scroll to top of content
+  window.scrollTo({ top: document.querySelector('.ticker').offsetTop, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
+  item.addEventListener('click', function() {
+    switchTab(this.dataset.tab);
+  });
+});
+
+// ── THEME TOGGLE ──
+function toggleTheme() {
+  const html = document.documentElement;
+  const btn = document.getElementById('theme-btn');
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  btn.textContent = isDark ? '🌙' : '☀️';
+  try { localStorage.setItem('vw-theme', html.getAttribute('data-theme')); } catch(e) {}
+}
+(function() {
+  try {
+    const saved = localStorage.getItem('vw-theme');
+    if (saved) {
+      document.documentElement.setAttribute('data-theme', saved);
+      document.getElementById('theme-btn').textContent = saved === 'dark' ? '☀️' : '🌙';
+    }
+  } catch(e) {}
+})();
+
+// ── CLOCK ──
+function startClock() {
+  function tick() {
+    try {
+      const now = new Date();
+      const t = now.toLocaleTimeString('en-US',{ timeZone:'America/Los_Angeles', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+      const d = now.toLocaleDateString('en-US',{ timeZone:'America/Los_Angeles', weekday:'short', month:'short', day:'numeric' });
+      const el = document.getElementById('live-time');
+      if (el) el.textContent = d + ' · ' + t + ' PT';
+    } catch(e) {}
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+startClock();
+
+// ── TOAST ──
+function showToast(msg, dur=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+document.querySelectorAll('.quick-link, .food-card, .comm-card').forEach(el => {
+  el.addEventListener('click', () => showToast('Full link integration coming soon.'));
+});
+</script>
+</body>
+</html>
